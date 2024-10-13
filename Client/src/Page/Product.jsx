@@ -3,6 +3,8 @@ import { ShopContext } from '../Context/ShopContext';
 import { useParams } from 'react-router-dom';
 import ProductHd from '../Components/ProductHd';
 import ProductDisplay from '../Components/ProductDisplay';
+import ProductDescription from '../Components/ProductDescription';
+import RelatedProduct from '../Components/RelatedProduct';
 
 const Product = () => {
     const { all_products } = useContext(ShopContext);
@@ -16,9 +18,13 @@ const Product = () => {
     }
 
     return (
-        <section>
-            <ProductHd product={product} />
-            <ProductDisplay product={product}/>
+        <section className='max_padd_container py-28'>
+            <div>
+                <ProductHd product={product} />
+                <ProductDisplay product={product} />
+                <ProductDescription />
+                <RelatedProduct />
+            </div>
         </section>
     );
 };

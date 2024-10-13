@@ -10,7 +10,7 @@ const Item = ({id, name, image, old_price, new_price }) => {
                 <img
                     className="w-full block object-cover group-hover:scale-110 transition-transform duration-300 transform scale-100"
                     src={image}
-                    alt="productImage"
+                    alt="productImage" onClick={window.scrollTo(0, 0)}
                 />
             </div>
             <div className='p-4 overflow-hidden'>
