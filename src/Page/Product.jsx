@@ -6,19 +6,19 @@ import ProductDisplay from '../Components/ProductDisplay';
 
 const Product = () => {
     const { all_products } = useContext(ShopContext);
+    // console.log(all_products)
     const { productId } = useParams();
-
-    // Safely convert productId to number
-    const product = all_products.find((e) => e.id === parseInt(productId, 10));
-
+    // console.log(productId)
+    const product = all_products.find((e) => e.id === Number(productId));
+    // console.log(product)
     if (!product) {
         return <div>Product not found!</div>;
     }
 
     return (
-        <section className="p-8">
+        <section>
             <ProductHd product={product} />
-            <ProductDisplay product={product} />
+            <ProductDisplay product={product}/>
         </section>
     );
 };

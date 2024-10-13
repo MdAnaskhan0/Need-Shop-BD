@@ -1,33 +1,53 @@
 import React from 'react';
+import product_rt_1 from '../assets/product_rt_1.png'
+import product_rt_2 from '../assets/product_rt_2.png'
+import product_rt_3 from '../assets/product_rt_3.png'
+import product_rt_4 from '../assets/product_rt_4.png'
+import { MdStar } from 'react-icons/md';
 
-// Display product details and optional thumbnails
-const ProductDisplay = ({ product }) => {
-    const { name, price, images = [] } = product; // Destructure product data
+const ProductDisplay = (props) => {
+
+    const { product } = props
 
     return (
-        <section className="p-4">
-            <div className="flex gap-8">
-                {/* Main product image */}
-                <div className="flex-shrink-0">
-                    <img src={images[0]} alt={name} className="w-[400px] h-auto object-cover" />
+        <section>
+            <div>
+                {/* left side */}
+                <div>
+                    <div>
+                        <img src={product_rt_1} alt="prodectImg" className='max-h-[99px]' />
+                        <img src={product_rt_2} alt="prodectImg" className='max-h-[99px]' />
+                        <img src={product_rt_3} alt="prodectImg" className='max-h-[99px]' />
+                        <img src={product_rt_4} alt="prodectImg" className='max-h-[99px]' />
+                    </div>
+                    <div>
+                        <img src={product.image} alt="" />
+                    </div>
                 </div>
-
-                {/* Product Info */}
-                <div className="flex flex-col gap-4">
-                    <h1 className="text-3xl font-bold">{name}</h1>
-                    <div className="text-2xl text-secondary">${price}</div>
-                    <p className="text-gray-600">This is a short product description.</p>
-
-                    {/* Thumbnail images */}
-                    <div className="flex gap-4">
-                        {images.map((img, idx) => (
-                            <img
-                                key={idx}
-                                src={img}
-                                alt={`Thumbnail ${idx + 1}`}
-                                className="w-[99px] h-[99px] object-cover rounded-md cursor-pointer hover:scale-105 transition"
-                            />
-                        ))}
+                {/* right Side  */}
+                <div>
+                    <h3>{product.name}</h3>
+                    <div>
+                        <MdStar />
+                        <MdStar />
+                        <MdStar />
+                        <MdStar />
+                        <p>(111)</p>
+                    </div>
+                    <div>
+                        <div>${product.old_price}</div>
+                        <div>${product.new_price}</div>
+                    </div>
+                    <div>
+                        <h4>Select Size</h4>
+                        <div>
+                            <div className='ring-2 ring-slate-900 h-10 w-10 flexCenter cursor-pointer'>S</div>
+                            <div className='ring-2 ring-slate-900 h-10 w-10 flexCenter cursor-pointer'>M</div>
+                            <div className='ring-2 ring-slate-900 h-10 w-10 flexCenter cursor-pointer'>L</div>
+                            <div className='ring-2 ring-slate-900 h-10 w-10 flexCenter cursor-pointer'>XL</div>
+                            <div className='ring-2 ring-slate-900 h-10 w-10 flexCenter cursor-pointer'>XXL</div>
+                            
+                        </div>
                     </div>
                 </div>
             </div>

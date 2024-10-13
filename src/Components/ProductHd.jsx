@@ -1,18 +1,13 @@
-import React from 'react';
 import { TbArrowRight } from 'react-icons/tb';
 
-const ProductHd = ({ product }) => {
+const ProductHd = (props) => {
+    const { product } = props;
+    console.log(product)
     return (
-        <div className="flex items-center gap-2 text-gray-600">
-            <span>Home</span>
-            <TbArrowRight />
-            <span>Shop</span>
-            <TbArrowRight />
-            <span>{product.category}</span>
-            <TbArrowRight />
-            <span>{product.name}</span>
+        <div>
+            Home <TbArrowRight /> Shop <TbArrowRight /> {product.category} <TbArrowRight /> {product.name}
         </div>
-    );
+    )
 };
 
 export default ProductHd;
