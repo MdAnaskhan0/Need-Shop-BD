@@ -7,6 +7,7 @@ const path = require('path');
 const cors = require('cors');
 const fs = require('fs');
 const { type } = require('os');
+const { error } = require('console');
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -62,7 +63,7 @@ app.use('/images', express.static(path.join(__dirname, 'upload', 'images')));
 
 // Create upload endpoint for images
 app.post('/upload', upload.single('product'), (req, res) => {
-    console.log('File:', req.file); 
+    console.log('File:', req.file);
     if (!req.file) {
         return res.status(400).json({ success: 0, message: 'No file uploaded!' });
     }
@@ -118,6 +119,7 @@ const ProductSchema = new mongoose.Schema({
     }
 });
 
+
 // Create Product model
 const Product = mongoose.model('Product', ProductSchema);
 
@@ -141,7 +143,7 @@ app.post('/addproduct', async (req, res) => {
             success: true,
             message: "Product added successfully",
             product: {
-                id: newProduct._id, 
+                id: newProduct._id,
                 name: newProduct.name,
             },
         });
@@ -158,7 +160,7 @@ app.post('/addproduct', async (req, res) => {
 // Endpoint to remove a product by ID
 app.post('/removeproduct', async (req, res) => {
     try {
-        const { id } = req.body; 
+        const { id } = req.body;
         if (!id) {
             return res.status(400).json({
                 success: false,
@@ -205,7 +207,7 @@ app.get('/allproducts', async (req, res) => {
         res.status(200).json({
             success: true,
             message: "Products retrieved successfully",
-            products: products, 
+            products: products,
         });
     } catch (error) {
         console.error("Error fetching products:", error);
@@ -216,6 +218,98 @@ app.get('/allproducts', async (req, res) => {
         });
     }
 });
+
+
+// Define the user model (schema) here
+const User = mongoose.model('user', {
+    name: {
+        type: String,
+    },
+    email: {
+        type: String,
+        unique: true,
+    },
+    password: {
+        type: String,
+    },
+    phone:{
+        type:String,
+    },
+    address:{
+        type:String,
+    },
+    cartDate: {
+        type: Object,
+    },
+    date: {
+        type: Date,
+        default: Date.now,
+    },
+});
+
+// Creating the registration api
+app.post('/registration', async (req, res) => {
+    let check = await User.findOne({ email: req.body.email });
+
+    if (check) {
+        return res.status(400).json({ success: false, errors: 'Already has an account on this email.' });
+    }
+
+    let cart = {};
+    for (let i = 0; i < 300; i++) {
+        cart[i] = 0;
+    }
+
+    const newUser = new User({
+        name: req.body.username,
+        email: req.body.email,
+        password: req.body.password,
+        phone: req.body.phone,
+        address: req.body.address,
+        cartDate: cart,
+    });
+
+    await newUser.save();
+
+    const data = {
+        user: {
+            id: newUser.id,
+        },
+    };
+    const token = jwt.sign(data, 'secret_ecom');
+    res.json({ success: true, token });
+});
+
+
+// Creating login api
+app.post('/login', async (req, res) => {
+    try {
+        let user = await User.findOne({ email: req.body.email });
+
+        if (user) {
+            const passMatch = req.body.password === user.password;
+
+            if (passMatch) {
+                const data = {
+                    user: {
+                        id: user.id,
+                    },
+                };
+
+                const token = jwt.sign(data, 'secret_ecom', { expiresIn: '1h' });
+                return res.json({ success: true, token });
+            } else {
+                return res.status(401).json({ success: false, error: 'Wrong Password' });
+            }
+        } else {
+            return res.status(401).json({ success: false, error: 'Wrong Email' });
+        }
+    } catch (error) {
+        console.error("Error during login:", error);
+        return res.status(500).json({ success: false, error: 'Server Error' });
+    }
+});
+
 
 // Start the server
 app.listen(port, (error) => {
