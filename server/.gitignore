@@ -7,19 +7,61 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
+# Dependency directories
+node_modules/
+bower_components/
+
+# Build directories
+dist/
+dist-ssr/
+out/
+.next/
+
+# Temporary files
 *.local
 .env
+.env.* # In case of multiple environment files like .env.production
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# Optional lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Editor directories and configuration files
+.vscode/
+!.vscode/extensions.json # Allow extensions config
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# OS-specific files
+Thumbs.db
+ehthumbs.db
+
+# Optional coverage reports
+coverage/
+.nyc_output/
+
+# Lint and formatting reports
+.eslintcache
+.stylelintcache
+
+# Debugger files
+.vscode-test/
+
+# PM2 process manager files
+pids/
+*.pid
+*.seed
+dump.pm2
+
+# Docker-related files
+.dockerignore
+
+# Svelte / Vite / Next.js caches (if applicable)
+.svelte-kit/
+.cache/

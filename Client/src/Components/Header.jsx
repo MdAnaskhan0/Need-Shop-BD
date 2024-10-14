@@ -1,6 +1,6 @@
 import React, { useContext, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
-import logo from '../assets/logo.svg'
+import logo from '../assets/logo.png'
 import Navbar from './Navbar'
 import { MdClose, MdMenu } from 'react-icons/md'
 import { FaOpencart } from 'react-icons/fa6'
@@ -18,7 +18,7 @@ const Header = () => {
                 {/* Logo */}
                 <div>
                     <Link to="/">
-                        <img src={logo} alt="Logo" className='h-10' />
+                        <img src={logo} alt="Logo" className='h-12' />
                     </Link>
                 </div>
 
