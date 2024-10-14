@@ -62,6 +62,7 @@ app.use('/images', express.static(path.join(__dirname, 'upload', 'images')));
 
 // Create upload endpoint for images
 app.post('/upload', upload.single('product'), (req, res) => {
+    console.log('File:', req.file); 
     if (!req.file) {
         return res.status(400).json({ success: 0, message: 'No file uploaded!' });
     }
@@ -71,6 +72,7 @@ app.post('/upload', upload.single('product'), (req, res) => {
         image_url: `http://localhost:${port}/images/${req.file.filename}`,
     });
 });
+
 
 // Global error handler for multer errors
 app.use((err, req, res, next) => {
@@ -123,8 +125,6 @@ const Product = mongoose.model('Product', ProductSchema);
 app.post('/addproduct', async (req, res) => {
     try {
         const { name, image, category, new_price, old_price } = req.body;
-
-        // Create a new product instance
         const newProduct = new Product({
             name,
             image,
@@ -133,7 +133,6 @@ app.post('/addproduct', async (req, res) => {
             old_price,
         });
 
-        // Save the product to the database
         await newProduct.save();
         console.log("Product saved:", newProduct);
 
@@ -142,7 +141,7 @@ app.post('/addproduct', async (req, res) => {
             success: true,
             message: "Product added successfully",
             product: {
-                id: newProduct._id, // Return the newly created product ID
+                id: newProduct._id, 
                 name: newProduct.name,
             },
         });
@@ -159,20 +158,15 @@ app.post('/addproduct', async (req, res) => {
 // Endpoint to remove a product by ID
 app.post('/removeproduct', async (req, res) => {
     try {
-        const { id } = req.body; // Extract id from the request body
-
-        // Validate that ID is provided
+        const { id } = req.body; 
         if (!id) {
             return res.status(400).json({
                 success: false,
                 message: "Product ID is required."
             });
         }
-
-        // Attempt to find and delete the product
         const deletedProduct = await Product.findOneAndDelete({ _id: id });
 
-        // Check if a product was found and deleted
         if (!deletedProduct) {
             return res.status(404).json({
                 success: false,
@@ -204,16 +198,14 @@ app.post('/removeproduct', async (req, res) => {
 // creating api for get allproduct
 app.get('/allproducts', async (req, res) => {
     try {
-        // Fetch all products from the database
         const products = await Product.find({});
 
         console.log("All products fetched");
 
-        // Respond with the list of products
         res.status(200).json({
             success: true,
             message: "Products retrieved successfully",
-            products: products, // Include the products in the response
+            products: products, 
         });
     } catch (error) {
         console.error("Error fetching products:", error);
@@ -224,9 +216,6 @@ app.get('/allproducts', async (req, res) => {
         });
     }
 });
-
-
-
 
 // Start the server
 app.listen(port, (error) => {
