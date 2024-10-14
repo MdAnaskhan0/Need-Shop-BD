@@ -6,6 +6,7 @@ const multer = require('multer');
 const path = require('path');
 const cors = require('cors');
 const fs = require('fs');
+const { type } = require('os');
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -80,6 +81,152 @@ app.use((err, req, res, next) => {
     }
     next();
 });
+
+
+
+// Schema for creating a product
+const ProductSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true,
+    },
+    image: {
+        type: String,
+        required: true,
+    },
+    category: {
+        type: String,
+        required: true,
+    },
+    new_price: {
+        type: Number,
+        required: true,
+    },
+    old_price: {
+        type: Number,
+        required: true,
+    },
+    date: {
+        type: Date,
+        default: Date.now,
+    },
+    available: {
+        type: Boolean,
+        default: true,
+    }
+});
+
+// Create Product model
+const Product = mongoose.model('Product', ProductSchema);
+
+// Endpoint to add a product
+app.post('/addproduct', async (req, res) => {
+    try {
+        const { name, image, category, new_price, old_price } = req.body;
+
+        // Create a new product instance
+        const newProduct = new Product({
+            name,
+            image,
+            category,
+            new_price,
+            old_price,
+        });
+
+        // Save the product to the database
+        await newProduct.save();
+        console.log("Product saved:", newProduct);
+
+        // Respond with the saved product name
+        res.status(201).json({
+            success: true,
+            message: "Product added successfully",
+            product: {
+                id: newProduct._id, // Return the newly created product ID
+                name: newProduct.name,
+            },
+        });
+    } catch (error) {
+        console.error("Error saving product:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to add product",
+            error: error.message,
+        });
+    }
+});
+
+// Endpoint to remove a product by ID
+app.post('/removeproduct', async (req, res) => {
+    try {
+        const { id } = req.body; // Extract id from the request body
+
+        // Validate that ID is provided
+        if (!id) {
+            return res.status(400).json({
+                success: false,
+                message: "Product ID is required."
+            });
+        }
+
+        // Attempt to find and delete the product
+        const deletedProduct = await Product.findOneAndDelete({ _id: id });
+
+        // Check if a product was found and deleted
+        if (!deletedProduct) {
+            return res.status(404).json({
+                success: false,
+                message: "Product not found."
+            });
+        }
+
+        console.log("Removed:", deletedProduct);
+        res.json({
+            success: true,
+            message: "Product removed successfully.",
+            product: {
+                id: deletedProduct._id,
+                name: deletedProduct.name,
+            }
+        });
+    } catch (error) {
+        console.error("Error removing product:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to remove product.",
+            error: error.message,
+        });
+    }
+});
+
+
+
+// creating api for get allproduct
+app.get('/allproducts', async (req, res) => {
+    try {
+        // Fetch all products from the database
+        const products = await Product.find({});
+
+        console.log("All products fetched");
+
+        // Respond with the list of products
+        res.status(200).json({
+            success: true,
+            message: "Products retrieved successfully",
+            products: products, // Include the products in the response
+        });
+    } catch (error) {
+        console.error("Error fetching products:", error);
+        res.status(500).json({
+            success: false,
+            message: "Failed to retrieve products",
+            error: error.message,
+        });
+    }
+});
+
+
+
 
 // Start the server
 app.listen(port, (error) => {
