@@ -1,94 +1,59 @@
-require('dotenv').config(); // Load environment variables
+require('dotenv').config();
+
 const express = require('express');
 const mongoose = require('mongoose');
+const cors = require('cors');
+const app = express();
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const path = require('path');
-const cors = require('cors');
-const fs = require('fs');
 const { type } = require('os');
-const { error } = require('console');
-
-const app = express();
-const port = process.env.PORT || 4000;
 
 // Middleware
 app.use(express.json());
 app.use(cors());
 
-// Database connection with MongoDB
-mongoose.connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-})
-    .then(() => console.log("Connected to MongoDB"))
-    .catch((error) => console.error("MongoDB connection error:", error));
+// MongoDB connection
+const dbURL = process.env.MONGODB_URL;
 
-// API creation
-app.get('/', (req, res) => {
-    res.send("Express App is running");
-});
 
-// Image storage configuration
+
+
+// *****************  Image storage engine  *****************
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        const uploadPath = './upload/images';
-        // Ensure the directory exists
-        fs.mkdirSync(uploadPath, { recursive: true });
-        cb(null, uploadPath);
-    },
+    destination: './upload/images',
     filename: (req, file, cb) => {
-        cb(null, `${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`);
-    },
+        return cb(null, `${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`);
+    }
 });
 
-const upload = multer({
-    storage: storage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
-    fileFilter: (req, file, cb) => {
-        const allowedTypes = /jpeg|jpg|png|gif/;
-        const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-        const mimetype = allowedTypes.test(file.mimetype);
+const upload = multer({ storage: storage });
+app.use('/images', express.static('upload/images'));
 
-        if (extname && mimetype) {
-            cb(null, true);
-        } else {
-            cb(new Error('Only images are allowed!'));
-        }
-    },
-});
-
-// Static files middleware
-app.use('/images', express.static(path.join(__dirname, 'upload', 'images')));
-
-// Create upload endpoint for images
+// Image upload route
 app.post('/upload', upload.single('product'), (req, res) => {
-    console.log('File:', req.file);
-    if (!req.file) {
-        return res.status(400).json({ success: 0, message: 'No file uploaded!' });
+    if (req.file) {
+        res.json({
+            success: 1,
+            image_url: `http://localhost:${process.env.PORT || 4000}/images/${req.file.filename}`
+        });
+    } else {
+        res.status(400).json({
+            success: 0,
+            message: 'No file uploaded'
+        });
     }
-
-    res.json({
-        success: 1,
-        image_url: `http://localhost:${port}/images/${req.file.filename}`,
-    });
-});
-
-
-// Global error handler for multer errors
-app.use((err, req, res, next) => {
-    if (err instanceof multer.MulterError) {
-        return res.status(500).json({ success: 0, message: err.message });
-    } else if (err) {
-        return res.status(400).json({ success: 0, message: err.message });
-    }
-    next();
 });
 
 
 
-// Schema for creating a product
-const ProductSchema = new mongoose.Schema({
+
+// *****************  Schema for creating products  *****************
+const Product = mongoose.model('Product', { // Changed to capitalize the model name
+    id: {
+        type: Number,
+        required: true,
+    },
     name: {
         type: String,
         required: true,
@@ -116,206 +81,127 @@ const ProductSchema = new mongoose.Schema({
     available: {
         type: Boolean,
         default: true,
-    }
+    },
 });
 
 
-// Create Product model
-const Product = mongoose.model('Product', ProductSchema);
 
-// Endpoint to add a product
+
+// *****************  API for products Adding *****************
 app.post('/addproduct', async (req, res) => {
-    try {
-        const { name, image, category, new_price, old_price } = req.body;
-        const newProduct = new Product({
-            name,
-            image,
-            category,
-            new_price,
-            old_price,
-        });
-
-        await newProduct.save();
-        console.log("Product saved:", newProduct);
-
-        // Respond with the saved product name
-        res.status(201).json({
-            success: true,
-            message: "Product added successfully",
-            product: {
-                id: newProduct._id,
-                name: newProduct.name,
-            },
-        });
-    } catch (error) {
-        console.error("Error saving product:", error);
-        res.status(500).json({
-            success: false,
-            message: "Failed to add product",
-            error: error.message,
-        });
+    let products = await Product.find({});
+    let id;
+    if (products.length > 0) {
+        let last_product_array = products.slice(-1);
+        let last_product = last_product_array[0];
+        id = last_product.id + 1;
+    } else {
+        id = 1;
     }
-});
-
-// Endpoint to remove a product by ID
-app.post('/removeproduct', async (req, res) => {
-    try {
-        const { id } = req.body;
-        if (!id) {
-            return res.status(400).json({
-                success: false,
-                message: "Product ID is required."
-            });
-        }
-        const deletedProduct = await Product.findOneAndDelete({ _id: id });
-
-        if (!deletedProduct) {
-            return res.status(404).json({
-                success: false,
-                message: "Product not found."
-            });
-        }
-
-        console.log("Removed:", deletedProduct);
-        res.json({
-            success: true,
-            message: "Product removed successfully.",
-            product: {
-                id: deletedProduct._id,
-                name: deletedProduct.name,
-            }
-        });
-    } catch (error) {
-        console.error("Error removing product:", error);
-        res.status(500).json({
-            success: false,
-            message: "Failed to remove product.",
-            error: error.message,
-        });
-    }
-});
-
-
-
-// creating api for get allproduct
-app.get('/allproducts', async (req, res) => {
-    try {
-        const products = await Product.find({});
-
-        console.log("All products fetched");
-
-        res.status(200).json({
-            success: true,
-            message: "Products retrieved successfully",
-            products: products,
-        });
-    } catch (error) {
-        console.error("Error fetching products:", error);
-        res.status(500).json({
-            success: false,
-            message: "Failed to retrieve products",
-            error: error.message,
-        });
-    }
-});
-
-
-// Define the user model (schema) here
-const User = mongoose.model('user', {
-    name: {
-        type: String,
-    },
-    email: {
-        type: String,
-        unique: true,
-    },
-    password: {
-        type: String,
-    },
-    phone:{
-        type:String,
-    },
-    address:{
-        type:String,
-    },
-    cartDate: {
-        type: Object,
-    },
-    date: {
-        type: Date,
-        default: Date.now,
-    },
-});
-
-// Creating the registration api
-app.post('/registration', async (req, res) => {
-    let check = await User.findOne({ email: req.body.email });
-
-    if (check) {
-        return res.status(400).json({ success: false, errors: 'Already has an account on this email.' });
-    }
-
-    let cart = {};
-    for (let i = 0; i < 300; i++) {
-        cart[i] = 0;
-    }
-
-    const newUser = new User({
-        name: req.body.username,
-        email: req.body.email,
-        password: req.body.password,
-        phone: req.body.phone,
-        address: req.body.address,
-        cartDate: cart,
+    const newProduct = new Product({
+        id: id,
+        name: req.body.name,
+        image: req.body.image,
+        category: req.body.category,
+        new_price: req.body.new_price,
+        old_price: req.body.old_price,
     });
 
-    await newUser.save();
-
-    const data = {
-        user: {
-            id: newUser.id,
-        },
-    };
-    const token = jwt.sign(data, 'secret_ecom');
-    res.json({ success: true, token });
-});
-
-
-// Creating login api
-app.post('/login', async (req, res) => {
     try {
-        let user = await User.findOne({ email: req.body.email });
-
-        if (user) {
-            const passMatch = req.body.password === user.password;
-
-            if (passMatch) {
-                const data = {
-                    user: {
-                        id: user.id,
-                    },
-                };
-
-                const token = jwt.sign(data, 'secret_ecom', { expiresIn: '1h' });
-                return res.json({ success: true, token });
-            } else {
-                return res.status(401).json({ success: false, error: 'Wrong Password' });
-            }
-        } else {
-            return res.status(401).json({ success: false, error: 'Wrong Email' });
-        }
+        await newProduct.save();
+        console.log('Product saved!');
+        res.json({
+            success: true,
+            name: req.body.name,
+        });
     } catch (error) {
-        console.error("Error during login:", error);
-        return res.status(500).json({ success: false, error: 'Server Error' });
+        console.error('Error saving product:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error saving product',
+        });
     }
 });
 
 
-// Start the server
-app.listen(port, (error) => {
-    if (!error) {
-        console.log(`Server is running on port: ${port}`);
-    } else {
-        console.error("Error starting server:", error);
+
+// *****************  API for products removing *****************
+app.post('/removeproduct', async (req, res) => {
+    try {
+        await Product.findOneAndDelete({ id: req.body.id })
+        console.log("Product remove!")
+        res.json({
+            success: true,
+            name: req.body.name,
+        })
+    } catch (error) {
+        console.error('Error removing product:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error removing product'
+        })
     }
+})
+
+
+
+
+
+// *****************  API for to get allProduct *****************
+app.get('/allproducts', async (req, res) => {
+    try {
+        let product = await Product.find({});
+        console.log("All Product fetched");
+        res.send(product);
+    } catch (error) {
+        console.error('Error  All_Product:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error  All_product'
+        })
+    }
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// MongoDB database connection: 
+
+mongoose.connect(dbURL)
+    .then(() => {
+        console.log('MongoDB connected successfully!');
+
+        const PORT = process.env.PORT || 4000;
+        app.listen(PORT, () => {
+            console.log(`Server is running on port: ${PORT}`);
+        });
+    })
+    .catch((err) => {
+        console.error('MongoDB connection error:', err);
+        process.exit(1);
+    });
+
+// Basic route
+app.get('/', (req, res) => {
+    res.send("Express is running");
 });
+
+
+
+
+

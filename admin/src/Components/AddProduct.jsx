@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { MdAdd } from "react-icons/md";
 import fileUpload from '../assets/upload.png';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 
@@ -13,22 +13,20 @@ const AddProduct = () => {
     };
 
     const [productDetails, setProductDetails] = useState({
-        name: "",
-        image: "",
-        category: "women",
-        new_price: "",
-        old_price: ""
+        name: '',
+        image: '',
+        category: 'men',
+        new_price: '',
+        old_price: ''
     })
-
     const changeHandler = (e) => {
         setProductDetails({ ...productDetails, [e.target.name]: e.target.value })
     }
 
-    const add_product = async () => {
-        console.log("products details ", productDetails);
+    const Add_Product = async () => {
+        console.log(productDetails);
         let responseData;
         let product = productDetails;
-
         let formData = new FormData();
         formData.append('product', image);
 
@@ -38,11 +36,11 @@ const AddProduct = () => {
                 Accept: 'application/json',
             },
             body: formData,
-        }).then((resp) => resp.json()).then((data) => { responseData = data })
+        }).then((res) => res.json()).then((data) => { responseData = data })
 
         if (responseData.success) {
             product.image = responseData.image_url;
-            console.log(product)
+            console.log(product);
             await fetch('http://localhost:4000/addproduct', {
                 method: 'POST',
                 headers: {
@@ -50,11 +48,16 @@ const AddProduct = () => {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(product),
-            }).then((resp) => resp.json().then((data) => {
-                data.success ? alert("Product Added") : alert('Upload Failed')
-            }))
+            })
+                .then((res) => res.json())
+                .then((data) => {
+                    console.log('Add Product Response:', data); // Log the response for debugging
+                    data.success ? alert('Product Added Successfully!') : alert('Failed to Add Product!');
+                });
         }
     }
+
+
 
 
     return (
@@ -122,11 +125,11 @@ const AddProduct = () => {
                     name='image'
                     id='file-input'
                     hidden
-                    onChange={imageHandler} // onChange handler moved here
+                    onChange={imageHandler}
                 />
             </div>
 
-            <button onClick={() => add_product()} className='btn_dark_rounded mt-6 flexCenter gap-x-1'>
+            <button onClick={() => Add_Product()} className='btn_dark_rounded mt-6 flexCenter gap-x-1'>
                 <MdAdd /> Add Product
             </button>
         </div>

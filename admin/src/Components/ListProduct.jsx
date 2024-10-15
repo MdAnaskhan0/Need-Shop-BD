@@ -4,47 +4,28 @@ import { BsTrash } from "react-icons/bs";
 const ListProduct = () => {
     const [allProduct, setAllProduct] = useState([]);
 
-    // Fetching products
+    const fetchInfo = async () => {
+        const res = await fetch('http://localhost:4000/allproducts');
+        const data = await res.json();
+        setAllProduct(data);
+    }
+
     useEffect(() => {
-        const fetchInfo = async () => {
-            try {
-                const response = await fetch('http://localhost:4000/allproducts');
-                const data = await response.json();
-
-                if (data.success) {
-                    setAllProduct(data.products);
-                    console.log("Fetched products:", data.products);
-                } else {
-                    console.error("Failed to fetch products:", data.message);
-                }
-            } catch (error) {
-                console.error("Error fetching products:", error);
-            }
-        };
-
         fetchInfo();
-    }, []);
+    }, [])
 
-    const removeProduct = async (productId) => {
-        try {
-            const response = await fetch(`http://localhost:4000/removeproduct`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ id: productId }),
-            });
-            const result = await response.json();
-            if (result.success) {
-                setAllProduct(allProduct.filter(product => product._id !== productId));
-                console.log("Product removed successfully:", productId);
-            } else {
-                console.error("Failed to remove product:", result.message);
-            }
-        } catch (error) {
-            console.error("Error removing product:", error);
-        }
-    };
+
+    const remove_product = async (id) => {
+        await fetch('http://localhost:4000/removeproduct', {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body:JSON.stringify({id:id})
+        })
+        await fetchInfo();
+    }
 
     return (
         <div className='p-2 box-border bg-white mb-0 rounded-sm w-full mt-4 sm:p-4 sm:m-7'>
@@ -62,8 +43,8 @@ const ListProduct = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {allProduct.map((product) => (
-                            <tr className='border-b border-slate-900/20 text-gray-20 p-6 medium-14' key={product._id}>
+                        {allProduct.map((product, i) => (
+                            <tr className='border-b border-slate-900/20 text-gray-20 p-6 medium-14' key={i}>
                                 <td className='flexStart sm:flexCenter'>
                                     <img src={product.image} alt={product.name} style={{ width: '50px', height: '50px' }} className='rounded-lg ring-1 ring-stone-900/5 my-1' />
                                 </td>
@@ -74,8 +55,8 @@ const ListProduct = () => {
                                 <td>
                                     <div className='bold-22 pl-6 sm:pl-12'>
                                         <BsTrash
-                                            onClick={() => removeProduct(product._id)}
-                                            style={{ cursor: 'pointer', color: 'red' }}
+                                            onClick={() => remove_product(product.id)}
+                                            className='text-gray-500 text-xl cursor-pointer'
                                         />
                                     </div>
                                 </td>
