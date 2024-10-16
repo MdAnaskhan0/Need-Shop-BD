@@ -236,21 +236,21 @@ app.post('/registration', async (req, res) => {
 app.post('/login', async (req, res) => {
     let user = await User.findOne({ email: req.body.email });
 
-    if(user){
+    if (user) {
         const passMatch = req.body.password === user.password;
-        if(passMatch){
+        if (passMatch) {
             const data = {
                 user: {
                     id: user.id
                 }
             }
             const token = jwt.sign(data, 'secret_ecom');
-            res.json({success: true, token});
-        }else{
-            res.json({success: false, error:"Wrong Password"})
+            res.json({ success: true, token });
+        } else {
+            res.json({ success: false, error: "Wrong Password" })
         }
-    }else{
-        res.json({success: false, error:"User not exist"})
+    } else {
+        res.json({ success: false, error: "User not exist" })
     }
 })
 
@@ -258,7 +258,7 @@ app.post('/login', async (req, res) => {
 
 
 // *****************  API for to latest Product  *****************
-app.get('/newcollection', async(req, res)=>{
+app.get('/newcollection', async (req, res) => {
     let products = await Product.find({});
     let newcollection = products.slice(-8);
     console.log('New Collection Fetched.')
@@ -269,12 +269,119 @@ app.get('/newcollection', async(req, res)=>{
 
 
 // *****************  API for to latest Product  *****************
-app.get('/popularproducts', async(req, res)=>{
+app.get('/popularproducts', async (req, res) => {
     let products = await Product.find({});
     let popularproducts = products.slice(4).slice(-8);
     console.log('Popular products Fetched.')
     res.send(popularproducts);
 })
+
+
+
+
+// *****************  Creating Middleware to fetch user  *****************
+const fetchUser = async (req, res, next) => {
+    const token = req.header('auth-token');
+
+    if (!token) {
+        res.status(401).send({ error: 'Please authenticate using using valid login' })
+    } else {
+        try {
+            const data = jwt.verify(token, 'secret_ecom');
+            req.user = data.user;
+            next();
+        } catch (error) {
+            res.status(401).send({ errors: 'please authenticate using valid token' })
+        }
+    }
+}
+
+
+
+
+// *****************  API for add to Cart  *****************
+app.post('/addtocart', fetchUser, async (req, res) => {
+    try {
+        let userData = await User.findOne({ _id: req.user.id });
+
+        userData.cartData[req.body.itemID] =
+            (userData.cartData[req.body.itemID] || 0) + 1;
+
+        await User.findByIdAndUpdate(
+            req.user.id,
+            { cartData: userData.cartData },
+            { new: true }
+        );
+
+        res.json({ message: 'Added' });  
+    } catch (error) {
+        console.error('Error updating cart:', error);
+        res.status(500).json({ error: 'Server error' });  
+    }
+});
+
+
+
+
+
+// ***************** API for Remove from Cart *****************
+app.post('/removefromcart', fetchUser, async (req, res) => {
+    try {
+        let userData = await User.findOne({ _id: req.user.id });
+        
+        if (!userData.cartData[req.body.itemID]) {
+            return res.status(404).json({ error: 'Item not found in cart' });
+        }
+
+        if (userData.cartData[req.body.itemID] > 1) {
+            userData.cartData[req.body.itemID] -= 1;
+        } else {
+            delete userData.cartData[req.body.itemID];
+        }
+        await User.findByIdAndUpdate(
+            req.user.id,
+            { cartData: userData.cartData },
+            { new: true }
+        );
+        res.json({ message: 'Removed item from cart' });
+    } catch (error) {
+        console.error('Error removing item from cart:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+
+
+
+// ***************** API for Get Cart Data *****************
+app.post('/getcart', fetchUser, async (req, res) => {
+
+    try {
+        const userData = await User.findById({_id: req.user.id});
+        if (!userData) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        res.json(userData.cartData);
+    } catch (error) {
+        console.error('Error fetching cart data:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
