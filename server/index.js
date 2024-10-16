@@ -232,7 +232,7 @@ app.post('/registration', async (req, res) => {
 
 
 
-// *****************  API for to user registration *****************
+// *****************  API for to user login *****************
 app.post('/login', async (req, res) => {
     let user = await User.findOne({ email: req.body.email });
 
@@ -257,6 +257,13 @@ app.post('/login', async (req, res) => {
 
 
 
+// *****************  API for to latest Product  *****************
+app.get('/newcollection', async(req, res)=>{
+    let products = await Product.find({});
+    let newcollection = products.slice(-8);
+    console.log('New Collection Fetched.')
+    res.send(newcollection);
+})
 
 
 
