@@ -4,6 +4,9 @@ import all_products from '../assets/all_products'
 import Item from '../Components/Item'
 
 const Category = ({ category, banner }) => {
+
+
+
     return (
         <section className='max_padd_container py-12 xl:py-28'>
             <div>

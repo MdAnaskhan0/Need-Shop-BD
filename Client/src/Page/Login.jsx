@@ -4,7 +4,7 @@ const Login = () => {
 
     const [state, setState] = useState('login')
     const [fromData, setFormData] = useState({
-        name: '',
+        username: '',
         email: '',
         password: '',
         phone: '',
@@ -17,63 +17,44 @@ const Login = () => {
 
 
     const registration = async () => {
-        console.log("Registration Function");
-        try {
-            const userData = {
-                username: fromData.name,  // Use the state variable to capture input values
-                email: fromData.email,
-                password: fromData.password,
-                phone: fromData.phone,
-                address: fromData.address
-            };
+        console.log("Registration Function", fromData);
+        let responseData;
 
-            const response = await fetch('http://localhost:4000/registration', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(userData)
-            });
+        await fetch('http://localhost:4000/registration', {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json', 
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(fromData)
+        }).then((res) => res.json()).then((data) => responseData = data)
 
-            const result = await response.json();
-            if (result.success) {
-                console.log("Registration Successful!", result.token);
-                localStorage.setItem('auth-token', result.token);
-                window.location.replace('/login')
-            } else {
-                console.error("Registration Failed:", result.errors);
-            }
-        } catch (error) {
-            console.error("Error in Registration:", error);
+        if (responseData.success) {
+            localStorage.setItem('auth-token', responseData.token);
+            window.location.replace('/')
+        } else {
+            alert(responseData.errors);
         }
     };
 
     const login = async () => {
-        console.log("Login Function");
-        try {
-            const loginData = {
-                email: fromData.email,
-                password: fromData.password
-            };
+        console.log("Login Function", fromData);
+        let responseData;
 
-            const response = await fetch('http://localhost:4000/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(loginData)
-            });
+        await fetch('http://localhost:4000/login', {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json', 
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(fromData)
+        }).then((res) => res.json()).then((data) => responseData = data)
 
-            const result = await response.json();
-            if (result.success) {
-                console.log("Login Successful!", result.token);
-                localStorage.setItem('auth-token', result.token);
-                window.location.replace('/')
-            } else {
-                console.error("Login Failed:", result.error);
-            }
-        } catch (error) {
-            console.error("Error in Login:", error);
+        if (responseData.success) {
+            localStorage.setItem('auth-token', responseData.token);
+            window.location.replace('/')
+        } else {
+            alert(responseData.errors);
         }
     };
 
