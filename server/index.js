@@ -268,7 +268,13 @@ app.get('/newcollection', async(req, res)=>{
 
 
 
-
+// *****************  API for to latest Product  *****************
+app.get('/popularproducts', async(req, res)=>{
+    let products = await Product.find({});
+    let popularproducts = products.slice(4).slice(-8);
+    console.log('Popular products Fetched.')
+    res.send(popularproducts);
+})
 
 
 
