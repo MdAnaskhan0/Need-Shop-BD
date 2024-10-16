@@ -18,7 +18,8 @@ const Header = () => {
     const handleLogout = () => {
         localStorage.removeItem('auth-token');
         setIsLoggedIn(false); 
-        navigate('/login'); 
+        navigate('/'); 
+        setCartItem(getDefaultCart());
     };
 
     useEffect(() => {
