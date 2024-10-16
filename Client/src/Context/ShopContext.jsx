@@ -29,7 +29,7 @@ const ShopContextProvider = (props) => {
                     'Content-Type': 'application/json',
                 },
                 body: "",
-            }).then((res)=> res.json().then()).then((data)=>setCartItem(data))
+            }).then((res) => res.json().then()).then((data) => setCartItem(data))
         }
     }, [])
 
@@ -67,6 +67,16 @@ const ShopContextProvider = (props) => {
                 .then((res) => res.json())
                 .then((data) => {
                     console.log(data);
+
+                    if (data.success) {
+                        setCartItem((prev) => {
+                            const updatedCart = { ...prev };
+                            if (updatedCart[itemId] > 0) {
+                                updatedCart[itemId] -= 1; 
+                            }
+                            return updatedCart; 
+                        });
+                    }
                 })
                 .catch((error) => console.error('Fetch Error:', error));
         }

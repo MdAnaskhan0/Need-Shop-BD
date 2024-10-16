@@ -30,7 +30,7 @@ const CartItem = () => {
                                     <td className='w-16 h-16 bg-white'>{cartItem[e.id]}</td>
                                     <td>${e.new_price * cartItem[e.id]}</td>
                                     <td>
-                                        <div className='bold-22 pl-14'><TbTrash onClick={() => removeFromCart(e.id)}/></div>
+                                        <div className='text-3xl pl-14'><TbTrash onClick={() => removeFromCart(e.id)}/></div>
                                     </td>
                                 </tr>
                             )
