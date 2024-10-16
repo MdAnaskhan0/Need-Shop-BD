@@ -8,6 +8,7 @@ const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const path = require('path');
 const { type } = require('os');
+const { error } = require('console');
 
 // Middleware
 app.use(express.json());
@@ -161,6 +162,88 @@ app.get('/allproducts', async (req, res) => {
         })
     }
 })
+
+
+
+
+
+// *****************  Schema for user model  *****************
+const User = mongoose.model('User', {
+    name: {
+        type: String,
+    },
+    email: {
+        type: String,
+        unique: true,
+    },
+    password: {
+        type: String,
+    },
+    phone: {
+        type: String,
+    },
+    address: {
+        type: String,
+    },
+    cartData: {
+        type: Object,
+    },
+    date: {
+        type: Date,
+        default: Date.now,
+    }
+})
+
+
+
+
+// *****************  API for to user registration *****************
+app.post('/registration', async (req, res) => {
+    let check = await User.findOne({email: req.body.email})
+    if(check){
+        return res.status(400).json({success: false, error: "Existing user found with same email address"})
+    }
+
+    let cart = {};
+    for(let i=0; i<50; i++){
+        cart[i]=0;
+    }
+    const user = new User({
+        name: req.body.username,
+        email: req.body.email,
+        password: req.body.password,
+        phone: req.body.phone,
+        address: req.body.address,
+        cartData: cart,
+    })
+    await user.save();
+
+    const data = {
+        user:{
+            id: user.id
+        }
+    }
+    
+    const token = jwt.sign(data, 'secret_ecom');
+    res.json({success: true, token})
+})
+
+
+
+
+
+// *****************  API for to user registration *****************
+
+
+
+
+
+
+
+
+
+
+
 
 
 
