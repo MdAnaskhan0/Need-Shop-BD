@@ -2,18 +2,6 @@
 
 Welcome to **Need Shop BD**, an e-commerce web application designed to provide users with a seamless shopping experience. This project was developed using React for the frontend and Node.js with Express for the backend, showcasing my skills in full-stack development.
 
-## Table of Contents
-
-- [Features](#features)
-- [Technologies Used](#technologies-used)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Project Structure](#project-structure)
-- [API Endpoints](#api-endpoints)
-- [Contributing](#contributing)
-- [License](#license)
-- [Author](#author)
-
 ## Features
 
 - **User Authentication**: Users can log in, log out, and manage their accounts with JWT authentication.
